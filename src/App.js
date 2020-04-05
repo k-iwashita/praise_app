@@ -3,7 +3,8 @@ import "./App.scss";
 import { Dropdown, ListGroup } from "react-bootstrap";
 
 const User = "users";
-const Post = "post1";
+const Post = "postee";
+const Favorite = "favorite";
 const users = [
   {
     user_id: 1,
@@ -46,13 +47,16 @@ localStorage.setItem(User, JSON.stringify(users));
 class App extends React.Component {
   constructor(props) {
     super(props);
-    const selectedUsers = get_users();
+    const Users = get_users();
     const current_posts = get_posts();
+    const current_favorites = get_favorites();
     this.state = {
-      user: selectedUsers[0],
+      user: Users[0],
       posts: current_posts,
+      praised_user: Users[0],
+      favorites: current_favorites,
     };
-    console.log(this.state.posts);
+    // console.log(this.state.posts);
   }
 
   change_user(user_id) {
@@ -64,25 +68,47 @@ class App extends React.Component {
     });
   }
 
+  set_praised_user(user) {
+    this.setState({
+      praised_user: user,
+    });
+  }
+
   addPosts(e) {
     e.preventDefault();
-    let posts = this.state.posts;
     const postElement = e.target.elements["post"];
+    const current_posts = get_posts();
+    console.log(current_posts.length);
     const post = {
+      id: current_posts.length + 1,
       praised_user: this.state.praised_user,
-      post_user: this.props.user,
+      post_user: this.state.user,
       text: postElement.value,
       favorited: 0,
     };
-    posts.push(post);
-    console.log(posts);
-    localStorage.setItem(Post, JSON.stringify(posts));
+    current_posts.push(post);
+    console.log(current_posts);
+    localStorage.setItem(Post, JSON.stringify(current_posts));
     postElement.value = "";
-    const current_posts = get_posts();
     this.setState({
       posts: current_posts,
     });
-    console.log(this.state.posts);
+    // console.log(this.state.posts);
+  }
+
+  create_favorite(post) {
+    const current_favorites = get_favorites();
+    const favorite = {
+      id: current_favorites.length + 1,
+      post: post,
+      user: this.state.user,
+    };
+    console.log(current_favorites);
+    current_favorites.push(favorite);
+    localStorage.setItem(Favorite, JSON.stringify(current_favorites));
+    this.setState({
+      favorites: current_favorites,
+    });
   }
 
   render() {
@@ -97,8 +123,15 @@ class App extends React.Component {
           text=""
           posts={this.state.posts}
           addPost={(e) => this.addPosts(e)}
+          setPraisedUser={(user) => this.set_praised_user(user)}
+          praised_user={this.state.praised_user}
         />
-        <PostList user={this.state.user} posts={this.state.posts} />
+        <PostList
+          user={this.state.user}
+          posts={get_posts()}
+          onClick={(post) => this.create_favorite(post)}
+          favorite={get_favorites()}
+        />
       </React.Fragment>
     );
   }
@@ -118,7 +151,7 @@ class Header extends React.Component {
 
   render() {
     return (
-      <header>
+      <header id="content">
         <div className="headerContent">
           <div className="userProfile">
             <img
@@ -142,42 +175,27 @@ class Header extends React.Component {
 }
 
 class PostForm extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      praised_user: this.props.user,
-      user: this.props.user,
-    };
-    this.text = "";
-    console.log(this.state.praised_user);
-  }
-
   setDropDownPost() {
     return users.map((user, index) => (
-      <Dropdown.Item key={index} onClick={() => this.set_praised_user(user)}>
+      <Dropdown.Item
+        key={index}
+        onClick={() => this.props.setPraisedUser(user)}
+      >
         {user.name}
       </Dropdown.Item>
     ));
   }
 
-  set_praised_user(user) {
-    this.setState({
-      praised_user: user,
-    });
-  }
-
   render() {
     return (
-      <div className="postBody">
+      <div className="postBody" id="content">
         <div className="postSideBar">
           <div className="postUserProfile">
             <img
-              src={`${process.env.PUBLIC_URL}/${this.state.praised_user.image}`}
+              src={`${process.env.PUBLIC_URL}/${this.props.praised_user.image}`}
               alt="Icon"
             />
-            <p>{this.state.praised_user.name}</p>
-            <p>いいねできる数:{this.state.praised_user.iine}</p>
-            <p>いいねされた数:{this.state.praised_user.receive_iine}</p>
+            <p>{this.props.praised_user.name}</p>
           </div>
           <Dropdown className="postDrop">
             <Dropdown.Toggle variant="success" id="dropdown-basic">
@@ -203,17 +221,61 @@ class PostForm extends React.Component {
 }
 
 class PostList extends React.Component {
+  getThePostFavorite(post) {
+    const favorites = get_favorites();
+    const relationFavorites = favorites.filter(
+      (favorite) => favorite.post.id === post.id
+    );
+    console.log(favorites);
+    return relationFavorites.length;
+  }
+
   setPostList() {
-    const posts = this.props.posts;
+    const posts = get_posts();
     return posts.map((post, index) => (
-      <ListGroup.Item key={index} variant="info">
-        Info
+      <ListGroup.Item key={index} variant="info" className="listItem">
+        <div className="listSidebar">
+          <div className="listContent">
+            <img
+              src={`${process.env.PUBLIC_URL}/${post.post_user.image}`}
+              alt="Icon"
+            />
+            <p>{post.post_user.name}</p>
+          </div>
+          <div className="listContent">
+            <img
+              src={`${process.env.PUBLIC_URL}images/jjj.jpeg`}
+              alt="Icon"
+              id="yajirusi"
+            />
+          </div>
+          <div className="listContent">
+            <img
+              src={`${process.env.PUBLIC_URL}/${post.praised_user.image}`}
+              alt="Icon"
+            />
+            <p>{post.praised_user.name}</p>
+          </div>
+        </div>
+        <div className="Text">
+          <div>
+            <p>{post.text}</p>
+          </div>
+          <div>
+            <button onClick={() => this.props.onClick(post)}>拍手をする</button>
+            <p>{this.getThePostFavorite(post)}個のいいね</p>
+          </div>
+        </div>
       </ListGroup.Item>
     ));
   }
 
   render() {
-    return <div className="postList">{this.setPostList()}</div>;
+    return (
+      <div className="postList" id="content">
+        {this.setPostList()}
+      </div>
+    );
   }
 }
 
@@ -238,6 +300,12 @@ function get_posts() {
   const Posts = localStorage.getItem(Post);
   const current_posts = Posts ? JSON.parse(Posts) : [];
   return current_posts;
+}
+
+function get_favorites() {
+  const Favorites = localStorage.getItem(Favorite);
+  const current_favorites = Favorites ? JSON.parse(Favorites) : [];
+  return current_favorites;
 }
 
 export default App;
