@@ -1,0 +1,108 @@
+@import "~bootstrap/scss/bootstrap";
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+header {
+  width: 90%;
+  height: 150px;
+  background-color: gainsboro;
+  margin: 0 auto;
+  position: relative;
+
+  & .headerContent {
+    width: 95%;
+    height: 95%;
+    margin: 0 auto;
+  }
+}
+
+.userProfile {
+  display: inline-block;
+  height: 150px;
+  width: 30%;
+  background-color: lightgoldenrodyellow;
+
+  & img {
+    display: inline-block;
+    margin: 0 50px;
+    height: 80px;
+    width: 80px;
+  }
+
+  & p {
+    text-align: center;
+    margin: 0;
+  }
+}
+
+.userSelect {
+  display: inline-block;
+  position: absolute;
+  top: 40px;
+  margin-left: 30px;
+}
+
+.postBody {
+  width: 90%;
+  background-color: lightskyblue;
+  height: 200px;
+  margin: 0 auto;
+  position: relative;
+
+  & .postSideBar {
+    width: 30%;
+    display: inline-block;
+    
+    & .postDrop {
+      margin: 0 auto;
+    }
+    & .postUserProfile {
+      display: inline-block;
+      height: 150px;
+      background-color: lightsteelblue;
+    
+      & img {
+        display: inline-block;
+        margin: 0 50px;
+        height: 80px;
+        width: 80px;
+      }
+    
+      & p {
+        text-align: center;
+        margin: 0;
+      }
+    }
+  }
+
+  & .postForm {
+    display: inline-block;
+    height: 90%;
+    width: 70%;
+    position: absolute;
+    top: 10px;
+
+    & textarea {
+      resize: none;
+      width: 90%;
+      height: 80%;
+      margin-bottom: 10px;
+    }
+
+    & Button {
+      margin: 0 auto;
+    }
+  }
+}
+
+.postList {
+  width: 90%;
+  margin: 0 auto;
+  background-color: lightsalmon;
+}
+
+
+
