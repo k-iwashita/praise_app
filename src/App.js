@@ -45,7 +45,7 @@ const usersList = [
 ];
 
 // localStorage.setItem(User, JSON.stringify(usersList));
-function get_users() {
+function getUsers() {
   const Users = localStorage.getItem(User);
   let current_users;
   if (Users === null) {
@@ -57,19 +57,19 @@ function get_users() {
   }
 }
 
-function get_posts() {
+function getPosts() {
   const Posts = localStorage.getItem(Post);
   const current_posts = Posts ? JSON.parse(Posts) : [];
   return current_posts;
 }
 
-function get_favorites() {
+function getFavorites() {
   const Favorites = localStorage.getItem(Favorite);
   const current_favorites = Favorites ? JSON.parse(Favorites) : [];
   return current_favorites;
 }
 
-function get_date() {
+function getDate() {
   var today = new Date();
   var year = today.getFullYear();
   var month = today.getMonth() + 1;
@@ -81,9 +81,8 @@ function get_date() {
 class App extends React.Component {
   constructor(props) {
     super(props);
-    get_users();
-    const current_posts = get_posts();
-    const current_favorites = get_favorites();
+    getUsers();
+    const current_posts = getPosts();
     this.state = {
       user: "mada",
       posts: current_posts,
@@ -95,8 +94,8 @@ class App extends React.Component {
   }
 
   async componentDidMount() {
-    const users = await get_users();
-    const current_favorites = get_favorites();
+    const users = await getUsers();
+    const current_favorites = getFavorites();
     let result = this.checkFavorites(current_favorites, users[0]);
     this.setState({
       user: users[0],
@@ -105,10 +104,10 @@ class App extends React.Component {
     });
   }
 
-  change_user(user_id) {
-    const Users = get_users();
+  changeUser(user_id) {
+    const Users = getUsers();
     //配列から添え字の番号のユーザーを取得する。
-    const current_favorites = get_favorites();
+    const current_favorites = getFavorites();
     const arrNum = user_id - 1;
     let result = this.checkFavorites(current_favorites, Users[arrNum]);
     this.setState({
@@ -117,7 +116,7 @@ class App extends React.Component {
     });
   }
 
-  set_praised_user(user) {
+  setPraisedUser(user) {
     if (this.state.user !== user) {
       this.setState({
         praised_user: user,
@@ -125,7 +124,7 @@ class App extends React.Component {
     }
   }
 
-  checktext(e) {
+  checkText(e) {
     if (
       e.target.value.length >= 5 &&
       this.state.user !== this.state.praised_user
@@ -140,11 +139,11 @@ class App extends React.Component {
     }
   }
 
-  addPosts(e) {
+  addPost(e) {
     e.preventDefault();
     const postElement = e.target.elements["post"];
-    const current_posts = get_posts();
-    const DateTime = get_date();
+    const current_posts = getPosts();
+    const DateTime = getDate();
 
     const post = {
       id: current_posts.length + 1,
@@ -154,18 +153,24 @@ class App extends React.Component {
       favorited: 0,
       date: DateTime,
     };
+    if (this.state.praised_user != this.state.user) {
+      this.createPost(post, current_posts);
+      postElement.value = "";
+    }
+  }
+
+  createPost(post, current_posts) {
     current_posts.push(post);
     localStorage.setItem(Post, JSON.stringify(current_posts));
-    postElement.value = "";
     this.setState({
       posts: current_posts,
       postdisabled: true,
     });
   }
 
-  create_favorite(post) {
-    const current_favorites = get_favorites();
-    if (this.state.user.iine >= 2 ) {
+  createFavorite(post) {
+    const current_favorites = getFavorites();
+    if (this.state.user.iine >= 2) {
       const favorite = {
         id: current_favorites.length + 1,
         post: post,
@@ -184,21 +189,13 @@ class App extends React.Component {
   }
 
   changeFavoriteCount(post, current_user) {
-    const current_users = get_users();
+    const current_users = getUsers();
     current_users.map((user) => {
       if (
         user.name === post.post_user.name ||
         user.name === post.praised_user.name
       ) {
-        user.receive_iine += 2;
-        user.iine += 1;
-        if (
-          user.name === post.post_user.name ||
-          user.name === post.praised_user.name
-        ) {
-          user.iine += 1;
-          user.receive_iine += 2;
-        }
+        user.receive_iine += 1;
       }
     });
     current_users.map((user) => {
@@ -215,7 +212,6 @@ class App extends React.Component {
     const current_user_favorites = favorites.filter(
       (favorite) => favorite.user.name === user.name
     );
-    console.log(current_user_favorites.lengthÎ)
     if (current_user_favorites.length >= 15) {
       this.changeFavDisabled();
       return true;
@@ -235,23 +231,23 @@ class App extends React.Component {
       <React.Fragment>
         <Header
           user={this.state.user}
-          change_user={(user_id) => this.change_user(user_id)}
+          changeUser={(user_id) => this.changeUser(user_id)}
         />
         <PostForm
           user={this.state.user}
           text=""
           posts={this.state.posts}
-          addPost={(e) => this.addPosts(e)}
-          setPraisedUser={(user) => this.set_praised_user(user)}
+          addPost={(e) => this.addPost(e)}
+          setPraisedUser={(user) => this.setPraisedUser(user)}
           praised_user={this.state.praised_user}
-          onChange={(e) => this.checktext(e)}
+          onChange={(e) => this.checkText(e)}
           disabled={this.state.postdisabled}
         />
         <PostList
           user={this.state.user}
-          posts={get_posts()}
-          onClick={(post) => this.create_favorite(post)}
-          favorite={get_favorites()}
+          posts={getPosts()}
+          onClick={(post) => this.createFavorite(post)}
+          favorite={getFavorites()}
           disabled={this.state.fav_disabled}
         />
       </React.Fragment>
@@ -261,11 +257,11 @@ class App extends React.Component {
 
 class Header extends React.Component {
   setDropDown() {
-    const users = get_users();
+    const users = getUsers();
     return users.map((user) => (
       <Dropdown.Item
         key={user.user_id}
-        onClick={() => this.props.change_user(user.user_id)}
+        onClick={() => this.props.changeUser(user.user_id)}
       >
         {user.name}
       </Dropdown.Item>
@@ -277,13 +273,17 @@ class Header extends React.Component {
       <header id="content">
         <div className="headerContent">
           <div className="userProfile">
-            <img
-              src={`${process.env.PUBLIC_URL}/${this.props.user.image}`}
-              alt="Icon"
-            />
-            <p>{this.props.user.name}</p>
-            <p>いいねできる数:{this.props.user.iine}</p>
-            <p>いいねされた数:{this.props.user.receive_iine}</p>
+            <div>
+              <img
+                src={`${process.env.PUBLIC_URL}/${this.props.user.image}`}
+                alt="Icon"
+              />
+            </div>
+            <div>
+              <p>{this.props.user.name}</p>
+              <p>いいねできる数:{this.props.user.iine}</p>
+              <p>いいねされた数:{this.props.user.receive_iine}</p>
+            </div>
           </div>
           <Dropdown className="userSelect">
             <Dropdown.Toggle variant="success" id="dropdown-basic">
@@ -299,7 +299,7 @@ class Header extends React.Component {
 
 class PostForm extends React.Component {
   setDropDownPost() {
-    const users = get_users();
+    const users = getUsers();
     return users.map((user, index) => (
       <Dropdown.Item
         key={index}
@@ -331,7 +331,7 @@ class PostForm extends React.Component {
         <form className="postForm" onSubmit={(e) => this.props.addPost(e)}>
           <textarea
             id="post"
-            placeholder="感謝を伝えよう"
+            placeholder="日頃の感謝を伝えよう!"
             defaultValue={this.props.text}
             onChange={(e) => this.props.onChange(e)}
           />
@@ -346,71 +346,97 @@ class PostForm extends React.Component {
 
 class PostList extends React.Component {
   getThePostFavorite(post) {
-    const favorites = get_favorites();
+    const favorites = getFavorites();
     const relationFavorites = favorites.filter(
       (favorite) => favorite.post.id === post.id
     );
-    // console.log(favorites);
     return relationFavorites.length;
   }
 
   setPostList() {
-    const posts = get_posts();
+    const posts = getPosts();
     return posts.map((post, index) => {
-      return <ListGroup.Item key={index} variant="info" className="listItem">
-        <div className="listSidebar">
-          <div className="listContent">
-            <img
-              src={`${process.env.PUBLIC_URL}/${post.post_user.image}`}
-              alt="Icon"
-            />
-            <p>{post.post_user.name}</p>
+      return (
+        <ListGroup.Item
+          key={index}
+          variant="info"
+          className="listItem clearfix"
+        >
+          <div className="listSidebar">
+            <div className="listContent">
+              <img
+                src={`${process.env.PUBLIC_URL}/${post.post_user.image}`}
+                alt="Icon"
+              />
+              <p>{post.post_user.name}</p>
+            </div>
+            <div className="listContent">
+              <img
+                src={`${process.env.PUBLIC_URL}images/jjj.jpeg`}
+                alt="Icon"
+                id="yajirusi"
+              />
+            </div>
+            <div className="listContent">
+              <img
+                src={`${process.env.PUBLIC_URL}/${post.praised_user.image}`}
+                alt="Icon"
+              />
+              <p>{post.praised_user.name}</p>
+            </div>
           </div>
-          <div className="listContent">
-            <img
-              src={`${process.env.PUBLIC_URL}images/jjj.jpeg`}
-              alt="Icon"
-              id="yajirusi"
-            />
+          <div className="text">
+            <div>{post.text}</div>
+            <div className="sub">
+              <button
+                onClick={() => this.props.onClick(post)}
+                disabled={
+                  this.props.disabled ||
+                  post.post_user.name === this.props.user.name ||
+                  post.praised_user.name === this.props.user.name
+                }
+              >
+                拍手をする
+              </button>
+              <div className="iinecount">
+                {this.getThePostFavorite(post)}個のいいね
+                <div className="iinePage">{this.setFavoriteCount(post)}</div>
+              </div>
+              <p>投稿日時：{post.date}</p>
+            </div>
           </div>
-          <div className="listContent">
-            <img
-              src={`${process.env.PUBLIC_URL}/${post.praised_user.image}`}
-              alt="Icon"
-            />
-            <p>{post.praised_user.name}</p>
-          </div>
-        </div>
-        <div className="Text">
-          <div>
-            <p>{post.text}</p>
-          </div>
-          <div>
-            <button
-              onClick={() => this.props.onClick(post)}
-              disabled={
-                this.props.disabled ||
-                post.post_user.name === this.props.user.name ||
-                post.praised_user.name === this.props.user.name
-              }
-            >
-              拍手をする
-            </button>
-            <p className='iinecount'>{this.getThePostFavorite(post)}個のいいね</p>
-            <p>投稿日時：{post.date}</p>
-          </div>
-        </div>
-      </ListGroup.Item>
+        </ListGroup.Item>
+      );
     });
   }
 
-  setButtonBool(post) {
-    
+  setFavoriteCount(post) {
+    const current_favorites = getFavorites();
+    const current_user = getUsers();
+    const list_favorites = current_favorites.filter(
+      (favorite) => favorite.post.id === post.id
+    );
+
+    const user_1 = list_favorites.filter((fav) => fav.user.user_id == 1);
+    const user_2 = list_favorites.filter((fav) => fav.user.user_id == 2);
+    const user_3 = list_favorites.filter((fav) => fav.user.user_id == 3);
+    const user_4 = list_favorites.filter((fav) => fav.user.user_id == 4);
+    const user_5 = list_favorites.filter((fav) => fav.user.user_id == 5);
+    return (
+      <React.Fragment>
+        <p>拍手相手一覧</p>
+        <ul>
+          <li>user1: {user_1.length}</li>
+          <li>user2: {user_2.length}</li>
+          <li>user3: {user_3.length}</li>
+          <li>user4: {user_4.length}</li>
+          <li>user5: {user_5.length}</li>
+        </ul>
+      </React.Fragment>
+    );
   }
-  
 
   render() {
-
     return (
       <div className="postList" id="content">
         {this.setPostList()}
@@ -418,17 +444,5 @@ class PostList extends React.Component {
     );
   }
 }
-
-class PostItem extends React.Component {
-  render() {
-    return <div></div>;
-  }
-}
-
-// function set_user(x) {
-//   x.setState({
-//     user: x.props.user,
-//   });
-// }
 
 export default App;
