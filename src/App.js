@@ -399,8 +399,8 @@ class PostList extends React.Component {
                 拍手をする
               </button>
               <div className="iinecount">
-                {this.getThePostFavorite(post)}個のいいね
-                <div className="iinePage">{this.setFavoriteCount(post)}</div>
+                <span className='arrow_box'>{this.setFavoriteCount(post)}</span>
+                <div className='xxx'>{this.getThePostFavorite(post)}個のいいね</div>
               </div>
               <p>投稿日時：{post.date}</p>
             </div>
