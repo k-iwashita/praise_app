@@ -3,9 +3,10 @@ import "./App.scss";
 import { Dropdown, ListGroup } from "react-bootstrap";
 
 const User = "users";
-const Post = "postee";
-const Favorite = "favorite";
-const users = [
+const Post = "posts";
+const Favorite = "favorites";
+
+const usersList = [
   {
     user_id: 1,
     name: "Iwashita",
@@ -42,21 +43,62 @@ const users = [
     image: "images/rukario.gif",
   },
 ];
-localStorage.setItem(User, JSON.stringify(users));
+
+// localStorage.setItem(User, JSON.stringify(usersList));
+function get_users() {
+  const Users = localStorage.getItem(User);
+  let current_users;
+  if (Users === null) {
+    current_users = localStorage.setItem(User, JSON.stringify(usersList));
+    return current_users;
+  } else {
+    current_users = JSON.parse(Users);
+    return current_users;
+  }
+}
+
+function get_posts() {
+  const Posts = localStorage.getItem(Post);
+  const current_posts = Posts ? JSON.parse(Posts) : [];
+  return current_posts;
+}
+
+function get_favorites() {
+  const Favorites = localStorage.getItem(Favorite);
+  const current_favorites = Favorites ? JSON.parse(Favorites) : [];
+  return current_favorites;
+}
+
+function get_date() {
+  var today = new Date();
+  var year = today.getFullYear();
+  var month = today.getMonth() + 1;
+  var day = today.getDate();
+  var datetime = year + "年" + month + "月" + day + "日";
+  return datetime;
+}
 
 class App extends React.Component {
   constructor(props) {
     super(props);
-    const Users = get_users();
+    get_users();
     const current_posts = get_posts();
     const current_favorites = get_favorites();
     this.state = {
-      user: Users[0],
+      user: "mada",
       posts: current_posts,
-      praised_user: Users[0],
+      praised_user: "mada",
       favorites: current_favorites,
+      disabled: true,
     };
-    // console.log(this.state.posts);
+  }
+
+  async componentDidMount() {
+    const users = await get_users();
+    this.setState({
+      user: users[0],
+      praised_user: users[0],
+    });
   }
 
   change_user(user_id) {
@@ -69,31 +111,48 @@ class App extends React.Component {
   }
 
   set_praised_user(user) {
-    this.setState({
-      praised_user: user,
-    });
+    if (this.state.user != user) {
+      this.setState({
+        praised_user: user,
+      });
+    }
+  }
+
+  checktext(e) {
+    if (
+      e.target.value.length >= 5 &&
+      this.state.user != this.state.praised_user
+    ) {
+      this.setState({
+        disabled: false,
+      });
+    } else {
+      this.setState({
+        disabled: true,
+      });
+    }
   }
 
   addPosts(e) {
     e.preventDefault();
     const postElement = e.target.elements["post"];
     const current_posts = get_posts();
-    console.log(current_posts.length);
+    const DateTime = get_date();
     const post = {
       id: current_posts.length + 1,
       praised_user: this.state.praised_user,
       post_user: this.state.user,
       text: postElement.value,
       favorited: 0,
+      date: DateTime,
     };
     current_posts.push(post);
-    console.log(current_posts);
     localStorage.setItem(Post, JSON.stringify(current_posts));
     postElement.value = "";
     this.setState({
       posts: current_posts,
     });
-    // console.log(this.state.posts);
+    console.log(post);
   }
 
   create_favorite(post) {
@@ -103,12 +162,42 @@ class App extends React.Component {
       post: post,
       user: this.state.user,
     };
-    console.log(current_favorites);
     current_favorites.push(favorite);
     localStorage.setItem(Favorite, JSON.stringify(current_favorites));
+    const current_user = this.changeFavoriteCount(post, this.state.user);
     this.setState({
       favorites: current_favorites,
+      user: current_user,
+      disabled: true,
     });
+  }
+
+  changeFavoriteCount(post, current_user) {
+    const current_users = get_users();
+    current_users.map((user) => {
+      if (
+        user.name === post.post_user.name ||
+        user.name === post.praised_user.name
+      ) {
+        user.receive_iine += 2;
+        user.iine += 1;
+        if (
+          user.name === post.post_user.name ||
+          user.name === post.praised_user.name
+        ) {
+          user.iine += 1;
+          user.receive_iine += 2;
+        }
+      }
+    });
+    current_users.map((user) => {
+      if (user.name === current_user.name) {
+        user.iine -= 2;
+      }
+    });
+    current_user.iine -= 2;
+    localStorage.setItem(User, JSON.stringify(current_users));
+    return current_user;
   }
 
   render() {
@@ -125,6 +214,8 @@ class App extends React.Component {
           addPost={(e) => this.addPosts(e)}
           setPraisedUser={(user) => this.set_praised_user(user)}
           praised_user={this.state.praised_user}
+          onChange={(e) => this.checktext(e)}
+          disabled={this.state.disabled}
         />
         <PostList
           user={this.state.user}
@@ -139,6 +230,7 @@ class App extends React.Component {
 
 class Header extends React.Component {
   setDropDown() {
+    const users = get_users();
     return users.map((user) => (
       <Dropdown.Item
         key={user.user_id}
@@ -176,6 +268,7 @@ class Header extends React.Component {
 
 class PostForm extends React.Component {
   setDropDownPost() {
+    const users = get_users();
     return users.map((user, index) => (
       <Dropdown.Item
         key={index}
@@ -209,11 +302,11 @@ class PostForm extends React.Component {
             id="post"
             placeholder="感謝を伝えよう"
             defaultValue={this.props.text}
+            onChange={(e) => this.props.onChange(e)}
           />
-          <button type="submit" disabled={false}>
+          <button type="submit" disabled={this.props.disabled}>
             感謝を拡散する
           </button>
-          <input value="更新" type="submit" disabled={false} />
         </form>
       </div>
     );
@@ -226,7 +319,7 @@ class PostList extends React.Component {
     const relationFavorites = favorites.filter(
       (favorite) => favorite.post.id === post.id
     );
-    console.log(favorites);
+    // console.log(favorites);
     return relationFavorites.length;
   }
 
@@ -290,22 +383,5 @@ class PostItem extends React.Component {
 //     user: x.props.user,
 //   });
 // }
-
-function get_users() {
-  const Users = JSON.parse(localStorage.getItem(User));
-  return Users;
-}
-
-function get_posts() {
-  const Posts = localStorage.getItem(Post);
-  const current_posts = Posts ? JSON.parse(Posts) : [];
-  return current_posts;
-}
-
-function get_favorites() {
-  const Favorites = localStorage.getItem(Favorite);
-  const current_favorites = Favorites ? JSON.parse(Favorites) : [];
-  return current_favorites;
-}
 
 export default App;
