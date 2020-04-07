@@ -3,9 +3,10 @@ import "./App.scss";
 import { Dropdown, ListGroup } from "react-bootstrap";
 
 const User = "users";
-const Post = "postfas";
-const Favorite = "fafavorites";
+const Post = "posts";
+const Favorite = "favorites";
 
+//初期のユーザーのデータ
 const usersList = [
   {
     user_id: 1,
@@ -44,7 +45,7 @@ const usersList = [
   },
 ];
 
-// localStorage.setItem(User, JSON.stringify(usersList));
+//DBからユーザー情報の取得
 function getUsers() {
   const Users = localStorage.getItem(User);
   let current_users;
@@ -57,18 +58,21 @@ function getUsers() {
   }
 }
 
+//DBから投稿の情報取得
 function getPosts() {
   const Posts = localStorage.getItem(Post);
   const current_posts = Posts ? JSON.parse(Posts) : [];
   return current_posts;
 }
 
+//DBから拍手の情報取得
 function getFavorites() {
   const Favorites = localStorage.getItem(Favorite);
   const current_favorites = Favorites ? JSON.parse(Favorites) : [];
   return current_favorites;
 }
 
+//日時の取得
 function getDate() {
   const today = new Date();
   const year = today.getFullYear();
@@ -76,10 +80,12 @@ function getDate() {
   const day = today.getDate();
   const hours = today.getHours();
   const minutes = today.getMinutes();
-  const datetime = year + "年" + month + "月" + day + "日" + hours + '時' + minutes + '分';
+  const datetime =
+    year + "年" + month + "月" + day + "日" + hours + "時" + minutes + "分";
   return datetime;
 }
 
+//引数のデータをDBに登録
 function setData(table, items) {
   localStorage.setItem(table, JSON.stringify(items));
 }
@@ -129,7 +135,8 @@ class App extends React.Component {
       });
     }
   }
-
+  
+  //textの数を確認
   checkText(e) {
     if (
       e.target.value.length >= 5 &&
@@ -144,7 +151,8 @@ class App extends React.Component {
       });
     }
   }
-
+  
+  //投稿をする前の確認
   addPost(e) {
     e.preventDefault();
     const postElement = e.target.elements["post"];
@@ -164,7 +172,8 @@ class App extends React.Component {
       postElement.value = "";
     }
   }
-
+  
+  //投稿を作成
   createPost(post, current_posts) {
     current_posts.push(post);
     setData(Post, current_posts);
@@ -174,6 +183,7 @@ class App extends React.Component {
     });
   }
 
+  //拍手を作成
   createFavorite(post) {
     const current_favorites = getFavorites();
     if (this.state.user.iine >= 2) {
@@ -194,6 +204,7 @@ class App extends React.Component {
     }
   }
 
+  //お気に入りの数の管理
   changeFavoriteCount(post, current_user) {
     const current_users = getUsers();
     current_users.map((user) => {
@@ -351,6 +362,7 @@ class PostForm extends React.Component {
 }
 
 class PostList extends React.Component {
+  //投稿に紐付いたお気に入りの取得
   getThePostFavorite(post) {
     const favorites = getFavorites();
     const relationFavorites = favorites.filter(
@@ -436,6 +448,7 @@ class PostList extends React.Component {
     );
   }
 
+  //どのユーザーがどれだけ拍手をしたかをするための準備
   filterUserFav(post) {
     const current_favorites = getFavorites();
     const current_users = getUsers();
