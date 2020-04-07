@@ -70,11 +70,13 @@ function getFavorites() {
 }
 
 function getDate() {
-  var today = new Date();
-  var year = today.getFullYear();
-  var month = today.getMonth() + 1;
-  var day = today.getDate();
-  var datetime = year + "年" + month + "月" + day + "日";
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1;
+  const day = today.getDate();
+  const hours = today.getHours();
+  const minutes = today.getMinutes();
+  const datetime = year + "年" + month + "月" + day + "日" + hours + '時' + minutes + '分';
   return datetime;
 }
 
