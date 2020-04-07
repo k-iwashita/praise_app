@@ -78,6 +78,10 @@ function getDate() {
   return datetime;
 }
 
+function setData(table, items) {
+  localStorage.setItem(table, JSON.stringify(items));
+}
+
 class App extends React.Component {
   constructor(props) {
     super(props);
@@ -153,7 +157,7 @@ class App extends React.Component {
       favorited: 0,
       date: DateTime,
     };
-    if (this.state.praised_user != this.state.user) {
+    if (this.state.praised_user !== this.state.user) {
       this.createPost(post, current_posts);
       postElement.value = "";
     }
@@ -161,7 +165,7 @@ class App extends React.Component {
 
   createPost(post, current_posts) {
     current_posts.push(post);
-    localStorage.setItem(Post, JSON.stringify(current_posts));
+    setData(Post, current_posts);
     this.setState({
       posts: current_posts,
       postdisabled: true,
@@ -177,7 +181,7 @@ class App extends React.Component {
         user: this.state.user,
       };
       current_favorites.push(favorite);
-      localStorage.setItem(Favorite, JSON.stringify(current_favorites));
+      setData(Favorite, current_favorites);
       const current_user = this.changeFavoriteCount(post, this.state.user);
       console.log(this);
       let reslut = this.checkFavorites(current_favorites, current_user);
@@ -204,7 +208,7 @@ class App extends React.Component {
       }
     });
     current_user.iine -= 2;
-    localStorage.setItem(User, JSON.stringify(current_users));
+    setData(User, current_users);
     return current_user;
   }
 
@@ -385,8 +389,10 @@ class PostList extends React.Component {
               <p>{post.praised_user.name}</p>
             </div>
           </div>
-          <div className="text">
-            <div>{post.text}</div>
+          <div className="textArea">
+            <div className="text">
+              <p>{post.text}</p>
+            </div>
             <div className="sub">
               <button
                 onClick={() => this.props.onClick(post)}
@@ -398,11 +404,11 @@ class PostList extends React.Component {
               >
                 拍手をする
               </button>
-              <div className="iinecount">
-                <span className='arrow_box'>{this.setFavoriteCount(post)}</span>
-                <div className='xxx'>{this.getThePostFavorite(post)}個のいいね</div>
-              </div>
-              <p>投稿日時：{post.date}</p>
+              <span className="xxx">
+                {this.getThePostFavorite(post)}個のいいね
+              </span>
+              <span className="favs_box">{this.setFavoriteCount(post)}</span>
+              <span>投稿日時：{post.date}</span>
             </div>
           </div>
         </ListGroup.Item>
@@ -411,29 +417,37 @@ class PostList extends React.Component {
   }
 
   setFavoriteCount(post) {
-    const current_favorites = getFavorites();
-    const current_user = getUsers();
-    const list_favorites = current_favorites.filter(
-      (favorite) => favorite.post.id === post.id
-    );
-
-    const user_1 = list_favorites.filter((fav) => fav.user.user_id == 1);
-    const user_2 = list_favorites.filter((fav) => fav.user.user_id == 2);
-    const user_3 = list_favorites.filter((fav) => fav.user.user_id == 3);
-    const user_4 = list_favorites.filter((fav) => fav.user.user_id == 4);
-    const user_5 = list_favorites.filter((fav) => fav.user.user_id == 5);
+    const arr = this.filterUserFav(post);
     return (
       <React.Fragment>
         <p>拍手相手一覧</p>
         <ul>
-          <li>user1: {user_1.length}</li>
-          <li>user2: {user_2.length}</li>
-          <li>user3: {user_3.length}</li>
-          <li>user4: {user_4.length}</li>
-          <li>user5: {user_5.length}</li>
+          {arr.map((user_fav, i) => {
+            return (
+              <li key={i}>
+                user{i + 1}: {user_fav.length}
+              </li>
+            );
+          })}
         </ul>
       </React.Fragment>
     );
+  }
+
+  filterUserFav(post) {
+    const current_favorites = getFavorites();
+    const current_users = getUsers();
+    const list_favorites = current_favorites.filter(
+      (favorite) => favorite.post.id === post.id
+    );
+
+    let arr = [];
+    current_users.map((user) => {
+      const list = list_favorites.filter((fav) => user.name === fav.user.name);
+      arr.push(list);
+    });
+
+    return arr;
   }
 
   render() {
