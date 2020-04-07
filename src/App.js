@@ -10,10 +10,10 @@ const Favorite = "favorites";
 const usersList = [
   {
     id: 1,
-    name: "アブソル",
+    name: "ピカチュウ",
     iine: 100,
     receive_iine: 0,
-    image: "images/abusoru.gif",
+    image: "images/pikachu.jpeg",
   },
   {
     id: 2,
@@ -42,6 +42,34 @@ const usersList = [
     iine: 100,
     receive_iine: 0,
     image: "images/rukario.gif",
+  },
+  {
+    id: 6,
+    name: "エーフィー",
+    iine: 100,
+    receive_iine: 0,
+    image: "images/e-fi-.jpeg",
+  },
+  {
+    id: 7,
+    name: "フライゴン",
+    iine: 100,
+    receive_iine: 0,
+    image: "images/furaigon.jpeg",
+  },
+  {
+    id: 8,
+    name: "ギャラドス",
+    iine: 100,
+    receive_iine: 0,
+    image: "images/gyaradosu.jpeg",
+  },
+  {
+    id: 9,
+    name: 'アブソル',
+    iine: 100,
+    receive_iine: 0,
+    image: "images/abusoru.gif",
   },
 ];
 
@@ -368,7 +396,7 @@ class PostList extends React.Component {
   }
 
   setPostList() {
-    const posts = getPosts();
+    const posts = getPosts().reverse();
     return posts.map((post, index) => {
       return (
         <ListGroup.Item
