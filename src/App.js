@@ -66,7 +66,7 @@ const usersList = [
   },
   {
     id: 9,
-    name: 'アブソル',
+    name: "アブソル",
     iine: 100,
     receive_iine: 0,
     image: "images/abusoru.gif",
