@@ -1,4 +1,4 @@
-### 'git clone https://github.com/k-iwashita/praise_app'
+### git clone https://github.com/k-iwashita/praise_app
 
 ターミナルでこちらのコマンドを打つと、ご自身のリポジトリにこのソースコードが入ります。
 
