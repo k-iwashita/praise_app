@@ -9,36 +9,36 @@ const Favorite = "favorites";
 //初期のユーザーのデータ
 const usersList = [
   {
-    user_id: 1,
-    name: "Iwashita",
+    id: 1,
+    name: "アブソル",
     iine: 100,
     receive_iine: 0,
     image: "images/abusoru.gif",
   },
   {
-    user_id: 2,
-    name: "Kawasaki",
+    id: 2,
+    name: "ブラッキー",
     iine: 100,
     receive_iine: 0,
     image: "images/burakki-.gif",
   },
   {
-    user_id: 3,
-    name: "Baba",
+    id: 3,
+    name: "コイキング",
     iine: 100,
     receive_iine: 0,
     image: "images/koikingu.gif",
   },
   {
-    user_id: 4,
-    name: "Honda",
+    id: 4,
+    name: "メタモン",
     iine: 100,
     receive_iine: 0,
     image: "images/metamon.gif",
   },
   {
-    user_id: 5,
-    name: "Fujikawa",
+    id: 5,
+    name: "ルカリオ",
     iine: 100,
     receive_iine: 0,
     image: "images/rukario.gif",
@@ -116,11 +116,11 @@ class App extends React.Component {
     });
   }
 
-  changeUser(user_id) {
+  changeUser(id) {
     const Users = getUsers();
     //配列から添え字の番号のユーザーを取得する。
     const current_favorites = getFavorites();
-    const arrNum = user_id - 1;
+    const arrNum = id - 1;
     let result = this.checkFavorites(current_favorites, Users[arrNum]);
     this.setState({
       user: Users[arrNum],
@@ -135,7 +135,7 @@ class App extends React.Component {
       });
     }
   }
-  
+
   //textの数を確認
   checkText(e) {
     if (
@@ -151,7 +151,7 @@ class App extends React.Component {
       });
     }
   }
-  
+
   //投稿をする前の確認
   addPost(e) {
     e.preventDefault();
@@ -167,12 +167,12 @@ class App extends React.Component {
       favorited: 0,
       date: DateTime,
     };
-    if (this.state.praised_user !== this.state.user) {
+    if (this.state.praised_user.id !== this.state.user.id) {
       this.createPost(post, current_posts);
       postElement.value = "";
     }
   }
-  
+
   //投稿を作成
   createPost(post, current_posts) {
     current_posts.push(post);
@@ -195,7 +195,6 @@ class App extends React.Component {
       current_favorites.push(favorite);
       setData(Favorite, current_favorites);
       const current_user = this.changeFavoriteCount(post, this.state.user);
-      console.log(this);
       let reslut = this.checkFavorites(current_favorites, current_user);
       this.setState({
         user: current_user,
@@ -208,15 +207,12 @@ class App extends React.Component {
   changeFavoriteCount(post, current_user) {
     const current_users = getUsers();
     current_users.map((user) => {
-      if (
-        user.name === post.post_user.name ||
-        user.name === post.praised_user.name
-      ) {
+      if (user.id === post.post_user.id || user.id === post.praised_user.id) {
         user.receive_iine += 1;
       }
     });
     current_users.map((user) => {
-      if (user.name === current_user.name) {
+      if (user.id === current_user.id) {
         user.iine -= 2;
       }
     });
@@ -227,7 +223,7 @@ class App extends React.Component {
 
   checkFavorites(favorites, user) {
     const current_user_favorites = favorites.filter(
-      (favorite) => favorite.user.name === user.name
+      (favorite) => favorite.user.id === user.id
     );
     if (current_user_favorites.length >= 15) {
       this.changeFavDisabled();
@@ -248,7 +244,7 @@ class App extends React.Component {
       <React.Fragment>
         <Header
           user={this.state.user}
-          changeUser={(user_id) => this.changeUser(user_id)}
+          changeUser={(id) => this.changeUser(id)}
         />
         <PostForm
           user={this.state.user}
@@ -277,8 +273,8 @@ class Header extends React.Component {
     const users = getUsers();
     return users.map((user) => (
       <Dropdown.Item
-        key={user.user_id}
-        onClick={() => this.props.changeUser(user.user_id)}
+        key={user.id}
+        onClick={() => this.props.changeUser(user.id)}
       >
         {user.name}
       </Dropdown.Item>
@@ -419,7 +415,7 @@ class PostList extends React.Component {
                 拍手をする
               </button>
               <span className="xxx">
-                {this.getThePostFavorite(post)}個のいいね
+                {this.getThePostFavorite(post)}個の拍手
               </span>
               <span className="favs_box">{this.setFavoriteCount(post)}</span>
               <span>投稿日時：{post.date}</span>
@@ -431,17 +427,18 @@ class PostList extends React.Component {
   }
 
   setFavoriteCount(post) {
-    const arr = this.filterUserFav(post);
+    const post_favs = this.filterUserFav(post);
     return (
       <React.Fragment>
         <p>拍手相手一覧</p>
         <ul>
-          {arr.map((user_fav, i) => {
-            return (
+          {post_favs.map((user_favs, i) => {
+            const listItem = user_favs[i] ? (
               <li key={i}>
-                user{i + 1}: {user_fav.length}
+                {user_favs[i].user.name}: {user_favs.length}
               </li>
-            );
+            ) : null;
+            return listItem;
           })}
         </ul>
       </React.Fragment>
@@ -452,17 +449,20 @@ class PostList extends React.Component {
   filterUserFav(post) {
     const current_favorites = getFavorites();
     const current_users = getUsers();
-    const list_favorites = current_favorites.filter(
-      (favorite) => favorite.post.id === post.id
-    );
+    let post_favs = [];
 
-    let arr = [];
-    current_users.map((user) => {
-      const list = list_favorites.filter((fav) => user.name === fav.user.name);
-      arr.push(list);
-    });
-
-    return arr;
+    current_users
+      .filter(
+        (user) =>
+          post.post_user.id !== user.id && post.praised_user.id !== user.id
+      )
+      .map((user) => {
+        const list = current_favorites
+          .filter((fav) => fav.post.id === post.id)
+          .filter((fav) => user.id === fav.user.id);
+        post_favs.push(list);
+      });
+    return post_favs;
   }
 
   render() {
